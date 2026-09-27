@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from pydantic import BaseModel, Field
 from typing import Optional
 
@@ -34,16 +36,3 @@ class ExplanationRequest(BaseModel):
     p_value: float = Field(default=0.0008)
     total_change: float = Field(default=0.84)
     unit: str = Field(default="°C/year")
-
-
-class DatasetConfig(BaseModel):
-    name: str
-    label: str
-    description: str
-    units: str
-    source: str
-    source_url: str
-    type: str
-    region: str
-    real_endpoint: Optional[str] = None
-    keys: Optional[list[str]] = None

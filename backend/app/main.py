@@ -1,5 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+import os
+
 from app.models.schemas import AnalysisRequest, TrendDetectRequest, CompareRequest, ExplanationRequest
 from app.services.analysis_service import AnalysisEngine
 from app.services.dataset_service import DatasetService
@@ -19,7 +21,12 @@ dataset_service = DatasetService()
 
 @app.get("/health")
 def health():
-    return {"status":"ok","app":"EarthLens","mode":"development"}
+    return {
+        "status": "ok",
+        "app": "EarthLens",
+        "mode": os.getenv("NASA_DATA_MODE", "demo"),
+        "message": "EarthLens backend is running."
+    }
 
 @app.get("/api/datasets")
 def datasets():
@@ -28,8 +35,7 @@ def datasets():
 @app.post("/api/analyze")
 def analyze(request: AnalysisRequest):
     try:
-        result = analysis_engine.analyze(request)
-        return result
+        return analysis_engine.analyze(request)
     except Exception as exc:
         return {
             "status": "error",
@@ -40,15 +46,24 @@ def analyze(request: AnalysisRequest):
 
 @app.post("/api/trend-detect")
 def detect(request: TrendDetectRequest):
-    return analysis_engine.detect_trends(request)
+    try:
+        return analysis_engine.detect_trends(request)
+    except Exception as exc:
+        return {"status": "error", "error": str(exc), "message": "Trend detection could not be completed."}
 
 @app.post("/api/compare")
 def compare(request: CompareRequest):
-    return analysis_engine.compare(request)
+    try:
+        return analysis_engine.compare(request)
+    except Exception as exc:
+        return {"status": "error", "error": str(exc), "message": "Comparison could not be completed."}
 
 @app.post("/api/explain")
 def explain(request: ExplanationRequest):
-    return analysis_engine.explain(request)
+    try:
+        return analysis_engine.explain(request)
+    except Exception as exc:
+        return {"status": "error", "error": str(exc), "message": "Explanation generation failed."}
 
 if __name__ == "__main__":
     import uvicorn
