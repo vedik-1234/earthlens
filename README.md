@@ -1,235 +1,435 @@
 # EarthLens
 
-EarthLens is a NASA-inspired scientific exploration platform for detecting and quantifying environmental change using real Earth-observation and climate datasets, with a strong emphasis on transparent statistics and reproducible analysis.
+**Interactive NASA Earth-observation platform for discovering and investigating environmental trends.**
 
-## Challenge connection
+*Built for NASA Space Apps Challenge 2026: "Be An Earth System Trend Detective!"*
 
-This project addresses the NASA Space Apps Challenge 2026 theme, “Be An Earth System Trend Detective!” by helping users answer:
+---
 
-- What environmental variable is changing?
-- Where is it changing?
-- How much is it changing?
-- How has it changed over time?
-- Is the change statistically significant?
-- Does the trend vary by region?
+## 🌍 What is EarthLens?
 
-## How EarthLens addresses the challenge
+EarthLens is a scientific exploration platform that helps you discover, measure, and understand environmental change using real NASA Earth-observation data. It combines:
 
-EarthLens focuses on the core challenge questions directly:
+- **Real environmental data** from NASA's Earthdata services
+- **Statistical rigor** with confidence intervals, p-values, and model diagnostics
+- **Interactive maps and charts** for spatial and temporal analysis
+- **Transparent methodology** documenting every calculation and assumption
+- **Apple-inspired design** that feels premium and precision-focused
 
-- What is changing?: users select environmental variables such as temperature, precipitation, and vegetation.
-- Where is it changing?: the app supports global and regional analysis with a map-based region selector.
-- How much is it changing?: the scientific engine computes absolute change, percent change, and slope per year.
-- Is it statistically significant?: every trend includes p-values, confidence intervals, and model diagnostics.
+---
 
-## Architecture
+## 🚀 Quick Start
 
-- Frontend: React + Vite + Tailwind CSS + Plotly + Leaflet
-- Backend: FastAPI + NumPy + pandas + SciPy + statsmodels + xarray
-- Data layer: NASA dataset configuration registry with pluggable dataset providers and cache
-- Scientific engine: time-series regression, significance testing, and transparent result metadata
+### Prerequisites
+- Python 3.11+
+- Node.js 18+
+- npm
 
-## NASA data sources
+### Launch
 
-The project is designed around NASA Earthdata-compatible services and NASA-housed datasets, including:
-
-- NASA MODIS land surface temperature and vegetation products
-- NASA GPM IMERG precipitation products
-- NASA Earthdata OPeNDAP and dataset metadata endpoints
-- Dataset registry architecture allows additional NASA records to be added without changing the application logic
-
-The initial app is built to work with a realistic, pluggable dataset configuration. In local development, a clearly labeled demo dataset is used when remote NASA services are unavailable so the application remains runnable.
-
-## Scientific methodology
-
-The core workflow is:
-
-1. Select a variable and region.
-2. Download or access the relevant NASA data slice.
-3. Aggregate the time series for the selected region.
-4. Fit a linear trend model.
-5. Estimate confidence intervals and p-values.
-6. Visualize spatial and temporal patterns.
-7. Present statistically transparent results with metadata and caveats.
-
-The first implementation uses linear regression because it is interpretable and practical for a hackathon. It explicitly documents assumptions, including roughly linear change over time, temporal independence assumptions, and limitations associated with seasonality and autocorrelation.
-
-## Statistical methodology
-
-Each analysis computes:
-
-- mean value
-- starting and ending values
-- absolute change
-- percent change (when meaningful)
-- linear slope
-- 95% confidence interval for the slope
-- p-value
-- R²
-- sample size
-- uncertainty
-
-The backend uses:
-
-- `scipy.stats.linregress` for slope and p-values
-- `statsmodels` for robust linear trend modeling
-- confidence intervals to communicate uncertainty
-- significance threshold p < 0.05 by default
-
-## Project structure
-
-```text
-earthlens/
-├── backend/
-│   ├── app/
-│   │   ├── main.py
-│   │   ├── api/
-│   │   ├── datasets/
-│   │   ├── models/
-│   │   ├── services/
-│   │   └── utils/
-│   ├── requirements.txt
-│   └── .env.example
-├── frontend/
-│   ├── src/
-│   ├── package.json
-│   └── .env.example
-├── README.md
-├── docker-compose.yml
-├── start.sh
-├── start.bat
-└── .gitignore
-```
-
-## Setup instructions
-
-### Backend
-
-```bash
-cd backend
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-cp .env.example .env
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
-```
-
-### Frontend
-
-```bash
-cd frontend
-npm install
-cp .env.example .env
-npm run dev -- --host 0.0.0.0 --port 5173
-```
-
-### Launch both apps together
-
+**Linux/macOS:**
 ```bash
 ./start.sh
 ```
 
-On Windows:
-
-```bat
+**Windows:**
+```cmd
 start.bat
 ```
 
-## Environment variables
-
-Example values are provided in:
-
-- `backend/.env.example`
-- `frontend/.env.example`
-
-Important variables include:
-
-- `EARTHLENS_ENV`
-- `NASA_DATA_MODE`
-- `CACHE_DIR`
-- `BACKEND_URL`
-- `VITE_API_URL`
-
-## API documentation
-
-FastAPI automatically exposes OpenAPI docs at:
-
-- `http://localhost:8000/docs`
-- `http://localhost:8000/redoc`
-
-## Limitations
-
-- Real NASA data access depends on remote service availability and network access.
-- Some public NASA endpoints require Earthdata authentication or retrieval workflow complexity.
-- This implementation prioritizes scientific clarity and reproducibility over full planetary-scale raster processing.
-- Linear regression is a first-pass method and does not fully resolve complex seasonal or autocorrelated behavior.
-
-## Future improvements
-
-- Add richer spatial grid analysis for rasters.
-- Integrate Earthdata login flows for authenticated downloads.
-- Expand dataset registry to include more NASA climate products.
-- Add robust region-drawing selection for arbitrary polygons.
-- Extend trend detection with seasonal decomposition and autocorrelation-aware models.
-
-## License
-
-This project is created for the NASA Space Apps Challenge 2026 and is intended for educational and exploratory use.
-
-## Important note
-
-The application is designed to work with real NASA data sources wherever possible, but a clearly labeled demo dataset is included for local development and offline or rate-limited situations. The production app distinguishes this mode in the UI and API results so users can tell when they are viewing a development-only dataset rather than a NASA product.
-
-## Design and science goals
-
-EarthLens blends a premium scientific interface with rigorous environmental analysis. The result is intended to feel like a modern Earth-observation application while remaining understandable to a high-school student and transparent to a scientist.
-
-This repository starts with a complete app skeleton and a working analysis pipeline that can be extended with additional NASA products and richer spatial workflows.
+The app will open automatically:
+- **Frontend**: http://localhost:5173
+- **Backend API**: http://localhost:8000
+- **API docs**: http://localhost:8000/docs
 
 ---
 
-This project is under active development as a challenge build.
+## 🎯 Core Features
+
+### 1. Trend Analysis
+Select a variable (temperature, precipitation, vegetation), region, and time period. EarthLens calculates:
+- Linear trend (per year)
+- 95% confidence interval
+- p-value for statistical significance
+- Model fit (R²)
+- Total change over the period
+
+### 2. Trend Detective
+Automatically scan all available variables in a region to find which are changing most significantly. Results ranked by:
+- Magnitude of trend
+- Statistical significance (p < 0.05)
+- Valid data coverage
+- Temporal consistency
+
+### 3. Variable Comparison
+Compare two environmental variables side-by-side:
+- Time series for each variable
+- Correlation coefficient
+- Trend direction and magnitude
+- Statistical association (with caution about causation)
+
+### 4. AI Explanations
+Generate human-readable explanations of results:
+- What was measured
+- Statistical findings
+- Scientific interpretation
+- Possible explanations
+- Analysis limitations
 
 ---
 
-This README is intentionally written to reflect the NASA Space Apps Challenge brief and the EarthLens product requirements.
+## 📊 Scientific Methodology
+
+### Statistical Methods
+- **Linear Regression**: Ordinary least squares (OLS)
+- **Significance Testing**: Two-tailed t-test (α = 0.05)
+- **Confidence Intervals**: 95% using t-distribution
+- **Model Diagnostics**: R², residual analysis
+
+### Data Handling
+- Missing values are removed before analysis
+- Sample size (N) is reported for each result
+- Assumptions and limitations are clearly stated
+- Results include uncertainty quantification
+
+### Limitations (Transparently Disclosed)
+This first implementation:
+- Assumes roughly linear trends
+- Does not account for seasonality or autocorrelation
+- Uses ordinary least squares (not robust regression)
+- Assumes approximately normal residuals
+- May be affected by data quality issues
 
 ---
 
-EarthLens is a scientific exploration platform designed to make environmental change understandable, measurable, and visually interpretable.
+## 🏗️ Architecture
+
+### Backend (FastAPI + Python)
+```
+backend/
+├── app/
+│   ├── main.py              # FastAPI application
+│   ├── models/
+│   │   └── schemas.py       # Pydantic request/response schemas
+│   ├── services/
+│   │   ├── analysis_service.py    # Trend analysis engine
+│   │   └── dataset_service.py     # Dataset management
+│   ├── datasets/
+│   │   ├── registry.py            # Dataset configuration
+│   │   └── demo.py                # Demo data generator
+│   └── utils/
+│       ├── cache.py               # Caching layer
+│       └── errors.py              # Custom exceptions
+├── requirements.txt
+└── .env.example
+```
+
+### Frontend (React + Vite)
+```
+frontend/
+├── src/
+│   ├── App.jsx                    # Main application
+│   ├── components/
+│   │   ├── AppShell.jsx           # Layout wrapper
+│   │   ├── Navigation.jsx         # Top navigation
+│   │   ├── Hero.jsx               # Landing section
+│   │   ├── AnalysisPanel.jsx      # Control panel
+│   │   ├── TrendSummary.jsx       # Result summary
+│   │   ├── TrendChart.jsx         # Plotly chart
+│   │   ├── MetricsGrid.jsx        # Statistics display
+│   │   ├── TrendList.jsx          # Trend findings
+│   │   ├── ComparisonView.jsx     # Variable comparison
+│   │   ├── DataSourceBadge.jsx    # Source indicator
+│   │   ├── LoadingSpinner.jsx     # Loading state
+│   │   └── ErrorBanner.jsx        # Error display
+│   ├── services/
+│   │   └── api.js                 # Backend API client
+│   ├── styles.css                 # Global styles & design tokens
+│   └── main.jsx                   # Entry point
+├── tailwind.config.js
+├── vite.config.js
+├── package.json
+└── .env.example
+```
 
 ---
 
-Choose a variable, a region, and a period, then investigate how Earth’s systems are changing.
+## 🛠️ Development
+
+### Backend Setup
+```bash
+cd backend
+python3 -m venv .venv
+source .venv/bin/activate  # or `.venv\Scripts\activate` on Windows
+pip install -r requirements.txt
+cp .env.example .env
+
+# Run with hot reload
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+### Frontend Setup
+```bash
+cd frontend
+npm install
+cp .env.example .env
+
+# Run dev server with hot reload
+npm run dev -- --host 0.0.0.0 --port 5173
+```
+
+### Run Tests
+```bash
+# Backend tests (pytest)
+cd backend
+pytest
+
+# Frontend tests (Vitest)
+cd frontend
+npm run test
+```
 
 ---
 
-EarthLens helps users move from raw NASA data to transparent, evidence-based scientific interpretation.
+## 📡 API Endpoints
+
+### Health & Metadata
+- `GET /` - Root information
+- `GET /health` - Health check
+- `GET /api/datasets` - List available datasets
+- `GET /api/regions` - List available regions
+
+### Analysis
+- `POST /api/analyze` - Perform trend analysis
+- `POST /api/trend-detect` - Scan for interesting trends
+- `POST /api/compare` - Compare two variables
+- `POST /api/explain` - Generate AI explanation
+
+### Request Example
+```bash
+curl -X POST http://localhost:8000/api/analyze \
+  -H "Content-Type: application/json" \
+  -d '{
+    "variable": "temperature",
+    "region": "global",
+    "start_year": 2003,
+    "end_year": 2025
+  }'
+```
+
+### Response Example
+```json
+{
+  "status": "success",
+  "variable": "temperature",
+  "region": "global",
+  "period": "2003-2025",
+  "trend": 0.038,
+  "unit": "°C/year",
+  "p_value": 0.0008,
+  "confidence_interval": [0.025, 0.051],
+  "r_squared": 0.72,
+  "statistically_significant": true,
+  "series": [...],
+  "fitted": [...]
+}
+```
 
 ---
 
-The goal is not to make a glamorous climate dashboard; it is to build a credible tool that supports real scientific inquiry.
+## 🎨 Design System
+
+### Theme
+Apple-inspired design with emphasis on clarity and precision:
+- Dark mode support
+- Generous whitespace
+- Subtle borders and shadows
+- System font stack
+- Smooth transitions (respects `prefers-reduced-motion`)
+
+### Colors
+| Token | Light | Dark |
+|-------|-------|------|
+| Background | `#f5f7f9` | `#080d14` |
+| Surface Primary | `rgba(255,255,255,0.95)` | `rgba(13,17,23,0.95)` |
+| Text Primary | `#0f172a` | `#f3f6fb` |
+| Accent | `#6ea8fe` | `#8ab4ff` |
+
+### Components
+- Buttons with focus states
+- Cards with hover effects
+- Rounded corners (18-28px)
+- Soft shadows
+- Accessible focus indicators
 
 ---
 
-EarthLens is a challenge-ready science application rooted in data, statistics, and careful interpretation.
+## 📦 Environment Variables
+
+### Backend (.env)
+```
+EARTHLENS_ENV=development
+NASA_DATA_MODE=demo
+CACHE_DIR=/tmp/earthlens-cache
+EARTHDATA_EMAIL=
+EARTHDATA_PASSWORD=
+```
+
+### Frontend (.env)
+```
+VITE_API_URL=http://localhost:8000
+```
 
 ---
 
-Explore NASA Earth-observation data, discover patterns, and understand the evidence.
+## 🔄 Data Flow
+
+1. **User selects** variable, region, and time period
+2. **Frontend sends** POST request to `/api/analyze`
+3. **Backend** retrieves or generates time series data
+4. **Analysis engine** performs linear regression
+5. **Calculation of** confidence intervals, p-values, R²
+6. **Results returned** with full metadata
+7. **Frontend displays** summary, statistics, and visualization
+8. **User can request** AI explanation or compare variables
 
 ---
 
-Start investigating Earth’s changing systems with EarthLens.
+## 🚨 Error Handling
+
+Common error scenarios:
+- **Insufficient data**: "Not enough valid observations..."
+- **Invalid region**: "Region '...' is not available"
+- **Invalid date range**: "End year must be later than start year"
+- **API unavailable**: "The analysis service is unavailable"
+
+All errors include:
+- Human-readable message
+- Technical error details
+- Suggested remediation
 
 ---
 
-Welcome to EarthLens.
+## 📈 NASA Data Sources
+
+EarthLens is designed to work with:
+- **MODIS** (land surface temperature, vegetation)
+- **GPM IMERG** (precipitation)
+- **Earthdata OPeNDAP** endpoints
+- **NASA climate models** (where available)
+
+The current implementation uses **demo data** for development. Production deployment requires:
+- Earthdata authentication credentials
+- API endpoint configuration
+- Data caching strategy
+- Rate limiting handling
 
 ---
 
-The Earth is changing. EarthLens helps you measure it.
+## 🔮 Future Improvements
+
+### Spatial Analysis
+- Grid-based trend calculation
+- Regional variation detection
+- Anomaly mapping
+- Polygon region selection
+
+### Advanced Statistics
+- Seasonal decomposition
+- Autocorrelation testing
+- Robust regression methods
+- Time series forecasting
+
+### Data Integration
+- Real NASA API endpoints
+- Earthdata login flow
+- NetCDF/HDF5 data loading
+- Multi-dataset fusion
+
+### UI Enhancements
+- Interactive map with layer controls
+- Time slider for animations
+- Custom region drawing
+- Export to GeoJSON/CSV
 
 ---
 
-A premium, transparent, and scientifically grounded environmental trend detector.
+## 🧪 Testing
+
+### Backend
+```bash
+cd backend
+pytest --cov=app
+```
+
+### Frontend
+```bash
+cd frontend
+npm run test
+npm run test:e2e
+```
+
+---
+
+## 📝 Scientific Transparency
+
+Every result includes:
+- ✅ Dataset name and source URL
+- ✅ Time range and spatial resolution
+- ✅ Sample size (N)
+- ✅ Statistical method used
+- ✅ Significance threshold (α = 0.05)
+- ✅ Known limitations
+- ✅ Missing data handling
+- ✅ Calculation methodology
+
+---
+
+## 🤝 Contributing
+
+Contributions welcome! Areas:
+- Real NASA API integration
+- Additional datasets
+- Advanced statistical methods
+- Interactive map features
+- UI/UX improvements
+- Documentation
+
+---
+
+## 📜 License
+
+MIT License - See LICENSE file
+
+---
+
+## 🙏 Credits
+
+**Built for NASA Space Apps Challenge 2026**
+
+Inspired by:
+- Apple's Human Interface Guidelines
+- Plotly scientific visualization
+- NASA Earthdata documentation
+- SciPy and statsmodels communities
+
+---
+
+## 🔗 Resources
+
+- [NASA Earthdata](https://www.earthdata.nasa.gov/)
+- [MODIS Data](https://modis.gsfc.nasa.gov/)
+- [GPM IMERG](https://gpm.nasa.gov/data/imerg)
+- [FastAPI Documentation](https://fastapi.tiangolo.com/)
+- [React Documentation](https://react.dev/)
+- [Plotly JavaScript](https://plotly.com/javascript/)
+
+---
+
+## 📧 Support
+
+Questions or issues? Open a GitHub issue or check the API documentation at `/docs`.
+
+---
+
+**EarthLens: Understand Earth's changing systems with science and precision.**
