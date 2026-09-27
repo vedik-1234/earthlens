@@ -1,76 +1,98 @@
 @echo off
-REM Start EarthLens development servers on Windows
+REM EarthLens Complete Startup Script for Windows
+REM Launches both backend and frontend with production settings
 
 setlocal enabledelayedexpansion
 
-echo.
-echo *** EarthLens Startup Script ***
+echo 🌍 EarthLens v2.0 - Production Ready
+echo =====================================
 echo.
 
-set "ROOT=%~dp0"
+REM Check Python
+python --version >nul 2>&1
+if %errorlevel% neq 0 (
+    echo ❌ Python 3 is not installed or not in PATH
+    echo    Download from: https://www.python.org/downloads/
+    pause
+    exit /b 1
+)
+echo ✅ Python 3 found
 
+REM Check Node.js
+node --version >nul 2>&1
+if %errorlevel% neq 0 (
+    echo ❌ Node.js is not installed or not in PATH
+    echo    Download from: https://nodejs.org/
+    pause
+    exit /b 1
+)
+echo ✅ Node.js found
+echo.
+
+REM Setup Backend
 echo Setting up backend...
-cd /d "%ROOT%backend"
+cd backend
 
 if not exist ".venv" (
-    echo Creating virtual environment...
+    echo Creating Python virtual environment...
     python -m venv .venv
 )
 
 call .venv\Scripts\activate.bat
 
-if not exist ".env" (
-    copy .env.example .env
-    echo Created .env file
-)
-
-echo Installing backend dependencies...
+echo Installing Python dependencies...
+pip install -q --upgrade pip
 pip install -q -r requirements.txt
 
-if errorlevel 1 (
-    echo Failed to install backend dependencies
-    pause
-    exit /b 1
-)
+echo Initializing database...
+python -c "from app.services.auth_service import init_db; init_db()"
 
-echo Backend ready
+echo ✅ Backend ready
 echo.
 
+REM Setup Frontend
 echo Setting up frontend...
-cd /d "%ROOT%frontend"
-
-if not exist ".env" (
-    copy .env.example .env
-    echo Created .env file
-)
+cd ..\frontend
 
 if not exist "node_modules" (
-    echo Installing frontend dependencies...
-    call npm install
-) else (
-    echo Frontend dependencies already installed
+    echo Installing Node.js dependencies...
+    call npm install --silent
 )
 
-echo Frontend ready
+echo ✅ Frontend ready
 echo.
 
-echo.
-echo Launching EarthLens...
-echo.
-echo Backend starting on http://localhost:8000
-echo Frontend starting on http://localhost:5173
-echo.
-echo Press Ctrl+C in each terminal to stop
+REM Start services
+echo Starting services...
 echo.
 
-echo Starting backend...
-start "EarthLens Backend" cmd /k "cd /d %ROOT%backend && call .venv\Scripts\activate.bat && uvicorn app.main:app --reload --host 0.0.0.0 --port 8000"
+echo Starting backend on http://0.0.0.0:8000...
+start cmd /k "cd backend && .venv\Scripts\activate.bat && uvicorn app.main:app --reload --host 0.0.0.0 --port 8000"
+echo ✅ Backend started
 
-echo Starting frontend...
-cd /d "%ROOT%frontend"
-start "EarthLens Frontend" cmd /k "npm run dev -- --host 0.0.0.0 --port 5173"
+REM Wait for backend to start
+timeout /t 2 /nobreak
+
+echo Starting frontend on http://localhost:5173...
+start cmd /k "cd frontend && npm run dev"
+echo ✅ Frontend started
 
 echo.
-echo EarthLens is launching! Check the terminal windows.
+echo =====================================
+echo 🚀 EarthLens is running!
+echo =====================================
+echo.
+echo 📍 Frontend: http://localhost:5173
+echo 📍 Backend API: http://localhost:8000
+echo 📍 API Docs: http://localhost:8000/docs
+echo.
+echo Demo Credentials:
+echo   Email: demo@earthlens.io
+echo   Password: DemoPass123!
+echo.
+echo For ngrok tunnels (public URLs):
+echo   start-ngrok.bat
+echo.
+echo Close the terminal windows to stop services.
 echo.
 pause

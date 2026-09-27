@@ -1,14 +1,17 @@
-version: "2"
-
-authtoken: ${NGROK_AUTHTOKEN}
-
-# Two tunnels are created so the frontend and API can both be shared.
-# Use the backend tunnel URL as VITE_API_URL when building the frontend for a
-# remote demo. The local development default remains http://localhost:8000.
+version: 3
+regions:
+  - us
+  - eu
+  - au
+  - ap
 tunnels:
-  backend:
+  earthlens-backend:
     proto: http
-    addr: backend:8000
-  frontend:
+    addr: 8000
+    domain: earthlens-backend.ngrok.io
+  earthlens-frontend:
     proto: http
-    addr: frontend:5173
+    addr: 5173
+    domain: earthlens-frontend.ngrok.io
+log: stdout
+log_level: info
