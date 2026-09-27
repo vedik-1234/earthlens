@@ -1,9 +1,58 @@
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
+const buildHeaders = (token = '', includeJson = true) => {
+  const headers = {};
+  if (includeJson) headers['Content-Type'] = 'application/json';
+  if (token) headers.Authorization = `Bearer ${token}`;
+  return headers;
+};
+
 export const api = {
-  getDatasets: async () => {
+  signup: async (payload, token = '') => {
     try {
-      const response = await fetch(`${API_BASE}/api/datasets`);
+      const response = await fetch(`${API_BASE}/api/auth/signup`, {
+        method: 'POST',
+        headers: buildHeaders(token),
+        body: JSON.stringify(payload),
+      });
+      return response.json();
+    } catch (err) {
+      console.error('Error signing up:', err);
+      return { status: 'error', message: 'Unable to create account.' };
+    }
+  },
+
+  signin: async (payload, token = '') => {
+    try {
+      const response = await fetch(`${API_BASE}/api/auth/signin`, {
+        method: 'POST',
+        headers: buildHeaders(token),
+        body: JSON.stringify(payload),
+      });
+      return response.json();
+    } catch (err) {
+      console.error('Error signing in:', err);
+      return { status: 'error', message: 'Unable to sign in.' };
+    }
+  },
+
+  getCurrentUser: async (token) => {
+    try {
+      const response = await fetch(`${API_BASE}/api/auth/me`, {
+        headers: buildHeaders(token, false),
+      });
+      return response.json();
+    } catch (err) {
+      console.error('Error fetching user:', err);
+      return { status: 'error', message: 'Unable to load user profile.' };
+    }
+  },
+
+  getDatasets: async (token = '') => {
+    try {
+      const response = await fetch(`${API_BASE}/api/datasets`, {
+        headers: buildHeaders(token, false),
+      });
       return response.json();
     } catch (err) {
       console.error('Error fetching datasets:', err);
@@ -11,9 +60,11 @@ export const api = {
     }
   },
 
-  getRegions: async () => {
+  getRegions: async (token = '') => {
     try {
-      const response = await fetch(`${API_BASE}/api/regions`);
+      const response = await fetch(`${API_BASE}/api/regions`, {
+        headers: buildHeaders(token, false),
+      });
       return response.json();
     } catch (err) {
       console.error('Error fetching regions:', err);
@@ -21,11 +72,11 @@ export const api = {
     }
   },
 
-  analyze: async (payload) => {
+  analyze: async (payload, token = '') => {
     try {
       const response = await fetch(`${API_BASE}/api/analyze`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: buildHeaders(token),
         body: JSON.stringify(payload),
       });
       return response.json();
@@ -35,11 +86,11 @@ export const api = {
     }
   },
 
-  detectTrends: async (payload) => {
+  detectTrends: async (payload, token = '') => {
     try {
       const response = await fetch(`${API_BASE}/api/trend-detect`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: buildHeaders(token),
         body: JSON.stringify(payload),
       });
       return response.json();
@@ -49,11 +100,11 @@ export const api = {
     }
   },
 
-  compare: async (payload) => {
+  compare: async (payload, token = '') => {
     try {
       const response = await fetch(`${API_BASE}/api/compare`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: buildHeaders(token),
         body: JSON.stringify(payload),
       });
       return response.json();
@@ -63,11 +114,11 @@ export const api = {
     }
   },
 
-  explain: async (payload) => {
+  explain: async (payload, token = '') => {
     try {
       const response = await fetch(`${API_BASE}/api/explain`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: buildHeaders(token),
         body: JSON.stringify(payload),
       });
       return response.json();

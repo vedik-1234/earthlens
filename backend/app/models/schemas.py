@@ -3,37 +3,48 @@ from typing import Optional
 
 
 class AnalysisRequest(BaseModel):
-    variable: str = Field(default="temperature")
-    region: str = Field(default="global")
+    variable: str = Field(default='temperature')
+    region: str = Field(default='global')
     start_year: int = Field(default=2003)
     end_year: int = Field(default=2025)
     region_bounds: Optional[dict] = None
 
 
 class TrendDetectRequest(BaseModel):
-    region: str = Field(default="global")
+    region: str = Field(default='global')
     start_year: int = Field(default=2003)
     end_year: int = Field(default=2025)
     region_bounds: Optional[dict] = None
 
 
 class CompareRequest(BaseModel):
-    variable_a: str = Field(default="temperature")
-    variable_b: str = Field(default="precipitation")
-    region: str = Field(default="global")
+    variable_a: str = Field(default='temperature')
+    variable_b: str = Field(default='precipitation')
+    region: str = Field(default='global')
     start_year: int = Field(default=2003)
     end_year: int = Field(default=2025)
 
 
 class ExplanationRequest(BaseModel):
-    variable: str = Field(default="temperature")
-    region: str = Field(default="global")
+    variable: str = Field(default='temperature')
+    region: str = Field(default='global')
     start_year: int = Field(default=2003)
     end_year: int = Field(default=2025)
     trend_value: float = Field(default=0.038)
     p_value: float = Field(default=0.0008)
     total_change: float = Field(default=0.84)
-    unit: str = Field(default="°C/year")
+    unit: str = Field(default='°C/year')
+
+
+class SignupRequest(BaseModel):
+    name: str = Field(default='EarthLens User')
+    email: str = Field(...)
+    password: str = Field(...)
+
+
+class SigninRequest(BaseModel):
+    email: str = Field(...)
+    password: str = Field(...)
 
 
 class DatasetConfig(BaseModel):
