@@ -1,0 +1,38 @@
+# EarthLens
+
+This repository contains the EarthLens application for the NASA Space Apps Challenge 2026.
+
+## Project overview
+
+EarthLens is a scientific exploration platform that helps users investigate environmental trends using NASA Earth-observation and climate data.
+
+The app is designed to answer:
+
+- what is changing
+- where it is changing
+- how much it is changing
+- how the change has evolved over time
+- whether the observed trend is statistically significant
+
+## Quick start
+
+```bash
+./start.sh
+```
+
+or on Windows:
+
+```bat
+start.bat
+```
+
+## Development environment
+
+- Python 3.11+
+- Node.js 18+
+- npm
+- Docker optional
+
+## License
+
+MIT
