@@ -1,1 +1,1 @@
-# EarthLens: scientific dashboard for discovering environmental trends
+"""Utility functions and helpers."""

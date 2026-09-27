@@ -1,12 +1,18 @@
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import os
 
 from app.models.schemas import AnalysisRequest, TrendDetectRequest, CompareRequest, ExplanationRequest
 from app.services.analysis_service import AnalysisEngine
 from app.services.dataset_service import DatasetService
 
-app = FastAPI(title="EarthLens", version="1.0.0")
+app = FastAPI(
+    title="EarthLens",
+    version="1.0.0",
+    description="Interactive NASA Earth-observation platform for discovering environmental trends",
+    docs_url="/docs",
+    redoc_url="/redoc",
+)
 
 app.add_middleware(
     CORSMiddleware,
@@ -19,52 +25,136 @@ app.add_middleware(
 analysis_engine = AnalysisEngine()
 dataset_service = DatasetService()
 
+
+@app.get("/")
+def root():
+    """Root endpoint."""
+    return {
+        "app": "EarthLens",
+        "version": "1.0.0",
+        "description": "Interactive NASA Earth-observation platform",
+        "docs": "/docs",
+        "health": "/health",
+    }
+
+
 @app.get("/health")
 def health():
+    """Health check endpoint."""
     return {
         "status": "ok",
         "app": "EarthLens",
         "mode": os.getenv("NASA_DATA_MODE", "demo"),
-        "message": "EarthLens backend is running."
+        "message": "EarthLens backend is running.",
     }
 
+
 @app.get("/api/datasets")
-def datasets():
-    return {"datasets": dataset_service.list_datasets()}
+def get_datasets():
+    """List all available datasets."""
+    return {
+        "status": "success",
+        "datasets": dataset_service.list_datasets(),
+    }
+
+
+@app.get("/api/regions")
+def get_regions():
+    """List all available regions."""
+    return {
+        "status": "success",
+        "regions": dataset_service.list_regions(),
+    }
+
 
 @app.post("/api/analyze")
 def analyze(request: AnalysisRequest):
+    """Perform a trend analysis for a selected variable and region."""
     try:
-        return analysis_engine.analyze(request)
+        result = analysis_engine.analyze(
+            variable=request.variable,
+            region=request.region,
+            start_year=request.start_year,
+            end_year=request.end_year,
+        )
+        return result
     except Exception as exc:
         return {
             "status": "error",
-            "error": str(exc),
+            "error": "AnalysisError",
             "message": "Unable to complete the requested trend analysis. Check the selected variable, region, and time window.",
-            "is_demo": True,
+            "details": str(exc),
         }
 
+
 @app.post("/api/trend-detect")
-def detect(request: TrendDetectRequest):
+def detect_trends(request: TrendDetectRequest):
+    """Detect interesting trends across all available variables."""
     try:
-        return analysis_engine.detect_trends(request)
+        result = analysis_engine.detect_trends(
+            region=request.region,
+            start_year=request.start_year,
+            end_year=request.end_year,
+        )
+        return result
     except Exception as exc:
-        return {"status": "error", "error": str(exc), "message": "Trend detection could not be completed."}
+        return {
+            "status": "error",
+            "error": "TrendDetectionError",
+            "message": "Trend detection could not be completed.",
+            "details": str(exc),
+        }
+
 
 @app.post("/api/compare")
-def compare(request: CompareRequest):
+def compare_variables(request: CompareRequest):
+    """Compare trends between two variables."""
     try:
-        return analysis_engine.compare(request)
+        result = analysis_engine.compare(
+            variable_a=request.variable_a,
+            variable_b=request.variable_b,
+            region=request.region,
+            start_year=request.start_year,
+            end_year=request.end_year,
+        )
+        return result
     except Exception as exc:
-        return {"status": "error", "error": str(exc), "message": "Comparison could not be completed."}
+        return {
+            "status": "error",
+            "error": "ComparisonError",
+            "message": "Comparison could not be completed.",
+            "details": str(exc),
+        }
+
 
 @app.post("/api/explain")
-def explain(request: ExplanationRequest):
+def explain_result(request: ExplanationRequest):
+    """Generate an AI explanation for analysis results."""
     try:
-        return analysis_engine.explain(request)
+        result = analysis_engine.explain(
+            variable=request.variable,
+            region=request.region,
+            start_year=request.start_year,
+            end_year=request.end_year,
+            trend_value=request.trend_value,
+            p_value=request.p_value,
+            total_change=request.total_change,
+            unit=request.unit,
+        )
+        return result
     except Exception as exc:
-        return {"status": "error", "error": str(exc), "message": "Explanation generation failed."}
+        return {
+            "status": "error",
+            "error": "ExplanationError",
+            "message": "Explanation generation failed.",
+            "details": str(exc),
+        }
+
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(
+        app,
+        host="0.0.0.0",
+        port=8000,
+    )

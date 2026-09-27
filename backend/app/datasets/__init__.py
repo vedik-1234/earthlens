@@ -1,3 +1,1 @@
-from pathlib import Path
-
-__all__ = ["DATASETS", "REGIONS"]
+"""Dataset registry and management."""

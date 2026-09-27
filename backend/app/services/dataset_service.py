@@ -1,84 +1,74 @@
 import os
 from pathlib import Path
-
 import numpy as np
 import pandas as pd
 
-DATASETS = {
-    "temperature": {
-        "id": "temperature",
-        "label": "Temperature",
-        "name": "surface_temperature",
-        "units": "°C/year",
-        "source": "NASA Earthdata / MODIS / climate products",
-        "description": "Temperature trend across a defined region and time range.",
-        "real_endpoint": "https://www.earthdata.nasa.gov/",
-        "type": "temperature",
-    },
-    "precipitation": {
-        "id": "precipitation",
-        "label": "Precipitation",
-        "name": "precipitation",
-        "units": "mm/month",
-        "source": "NASA GPM IMERG",
-        "description": "Precipitation variability and accumulation.",
-        "real_endpoint": "https://gpm.nasa.gov/data/imerg",
-        "type": "precipitation",
-    },
-    "vegetation": {
-        "id": "vegetation",
-        "label": "Vegetation",
-        "name": "vegetation_index",
-        "units": "NDVI",
-        "source": "NASA MODIS vegetation products",
-        "description": "Vegetation productivity and greening trends.",
-        "real_endpoint": "https://modis.gsfc.nasa.gov/data/",
-        "type": "vegetation",
-    },
-}
-
-REGIONS = {
-    "global": {"name": "Global", "bounds": [-180, -90, 180, 90]},
-    "north_america": {"name": "North America", "bounds": [-168, 10, -52, 72]},
-    "south_america": {"name": "South America", "bounds": [-82, -56, -34, 13]},
-    "africa": {"name": "Africa", "bounds": [-18, -35, 55, 38]},
-    "asia": {"name": "Asia", "bounds": [25, -10, 180, 80]},
-    "australia": {"name": "Australia", "bounds": [112, -45, 154, -10]},
-    "arctic": {"name": "Arctic", "bounds": [-180, 60, 180, 90]},
-}
-
-CACHE_DIR = Path(os.getenv("CACHE_DIR", "/tmp/earthlens-cache"))
-CACHE_DIR.mkdir(parents=True, exist_ok=True)
+from app.datasets.registry import DATASETS, REGIONS
+from app.datasets.demo import DemoDataGenerator
 
 
 class DatasetService:
-    def list_datasets(self):
-        return [{"id": key, **config, "region_options": list(REGIONS.keys())} for key, config in DATASETS.items()]
-
-    def get_dataset(self, variable):
+    """Service for dataset management, discovery, and retrieval."""
+    
+    def __init__(self):
+        self.datasets = DATASETS
+        self.regions = REGIONS
+        self.demo_gen = DemoDataGenerator()
+    
+    def list_datasets(self) -> list:
+        """List all available datasets."""
+        return [
+            {
+                "id": key,
+                **config,
+                "region_options": list(REGIONS.keys()),
+            }
+            for key, config in DATASETS.items()
+        ]
+    
+    def get_dataset(self, variable: str) -> dict:
+        """Get metadata for a specific dataset."""
         if variable not in DATASETS:
             raise ValueError(f"Variable '{variable}' is not supported in the dataset registry.")
         return DATASETS[variable]
-
-    def get_demo_series(self, variable, start_year, end_year):
-        years = list(range(start_year, end_year + 1))
-        base = {"temperature": 12.5, "precipitation": 85.0, "vegetation": 0.52}[variable]
-        slope = {"temperature": 0.018, "precipitation": 0.8, "vegetation": 0.0033}[variable]
-        seasonal = {"temperature": 0.65, "precipitation": 10.0, "vegetation": 0.05}[variable]
-        values = []
-        rng = np.random.default_rng(21)
-        for i, year in enumerate(years):
-            drift = base + slope * (year - start_year)
-            wave = seasonal * np.sin((i / max(1, len(years) - 1)) * np.pi * 2.0)
-            noise = rng.normal(0.0, 0.18)
-            values.append(float(drift + wave + noise))
-        return pd.DataFrame({"year": years, "value": values})
-
-    def build_region_summary(self, variable, region, start_year, end_year):
-        df = self.get_demo_series(variable, start_year, end_year)
+    
+    def list_regions(self) -> dict:
+        """List all available regions."""
         return {
-            "region": region,
+            key: {
+                **config,
+                "id": key,
+            }
+            for key, config in REGIONS.items()
+        }
+    
+    def get_region(self, region_id: str) -> dict:
+        """Get metadata for a specific region."""
+        if region_id not in REGIONS:
+            raise ValueError(f"Region '{region_id}' is not available.")
+        return {**REGIONS[region_id], "id": region_id}
+    
+    def get_demo_series(self, variable: str, start_year: int, end_year: int, region: str = "global") -> pd.DataFrame:
+        """Get a demo time series for development/testing."""
+        return self.demo_gen.get_series(variable, start_year, end_year, region)
+    
+    def build_region_summary(self, variable: str, region: str, start_year: int, end_year: int) -> dict:
+        """Build a summary of a variable in a region."""
+        df = self.get_demo_series(variable, start_year, end_year, region)
+        dataset = self.get_dataset(variable)
+        
+        return {
             "variable": variable,
-            "source": "Demo dataset (development only)",
+            "region": region,
+            "dataset_name": dataset["label"],
+            "dataset_source": dataset["source"],
+            "period": f"{start_year}-{end_year}",
             "series": df.to_dict(orient="records"),
+            "statistics": {
+                "count": len(df),
+                "mean": float(df["value"].mean()),
+                "std": float(df["value"].std()),
+                "min": float(df["value"].min()),
+                "max": float(df["value"].max()),
+            },
         }
