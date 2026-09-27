@@ -1,0 +1,14 @@
+version: "2"
+
+authtoken: ${NGROK_AUTHTOKEN}
+
+# Two tunnels are created so the frontend and API can both be shared.
+# Use the backend tunnel URL as VITE_API_URL when building the frontend for a
+# remote demo. The local development default remains http://localhost:8000.
+tunnels:
+  backend:
+    proto: http
+    addr: backend:8000
+  frontend:
+    proto: http
+    addr: frontend:5173

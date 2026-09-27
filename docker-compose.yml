@@ -8,11 +8,17 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - EARTHLENS_ENV=development
-      - NASA_DATA_MODE=demo
-      - CACHE_DIR=/tmp/earthlens-cache
+      EARTHLENS_ENV: ${EARTHLENS_ENV:-development}
+      NASA_DATA_MODE: ${NASA_DATA_MODE:-demo}
+      CACHE_DIR: /tmp/earthlens-cache
+      EARTHLENS_ALLOWED_ORIGINS: ${EARTHLENS_ALLOWED_ORIGINS:-http://localhost:5173}
     volumes:
       - ./backend:/app
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   frontend:
     build:
@@ -21,6 +27,29 @@ services:
     ports:
       - "5173:5173"
     environment:
-      - VITE_API_URL=http://localhost:8000
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:8000}
+    depends_on:
+      backend:
+        condition: service_healthy
     volumes:
       - ./frontend:/app
+      - /app/node_modules
+
+  # Optional public tunnels for demos and remote judging.
+  # Start with: docker compose --profile tunnel up --build
+  ngrok:
+    image: ngrok/ngrok:latest
+    profiles: ["tunnel"]
+    restart: unless-stopped
+    command: start --all --config /etc/ngrok.yml
+    environment:
+      NGROK_AUTHTOKEN: ${NGROK_AUTHTOKEN:?Set NGROK_AUTHTOKEN in .env before starting the tunnel}
+    volumes:
+      - ./ngrok.yml:/etc/ngrok.yml:ro
+    ports:
+      - "4040:4040"
+    depends_on:
+      backend:
+        condition: service_healthy
+      frontend:
+        condition: service_started
